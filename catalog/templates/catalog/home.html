@@ -1,0 +1,151 @@
+{% extends 'catalog/base.html' %}
+
+{% block title %}Каталог кефиров{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-checkbox {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        transform: scale(1.5);
+        z-index: 1;
+    }
+    .delete-mode .card {
+        position: relative;
+        border: 2px solid #ffc107;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap">
+    <h1 class="mb-0 me-3">Список кефиров</h1>
+    
+    <form method="get" class="d-flex gap-3 flex-wrap">
+        <div>
+            <label for="sort">Сортировка:</label>
+            <select name="sort" id="sort" class="form-select" onchange="this.form.submit()">
+                <option value="brand" {% if current_sort == 'brand' %}selected{% endif %}>По бренду</option>
+                <option value="fat_content" {% if current_sort == 'fat_content' %}selected{% endif %}>По жирности</option>
+                <option value="extra_flavor" {% if current_sort == 'extra_flavor' %}selected{% endif %}>По доп. вкусу</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="direction">Направление:</label>
+            <select name="direction" id="direction" class="form-select" onchange="this.form.submit()">
+                <option value="asc" {% if current_dir == 'asc' %}selected{% endif %}>По возрастанию</option>
+                <option value="desc" {% if current_dir == 'desc' %}selected{% endif %}>По убыванию</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="type">Тип кефира:</label>
+            <select name="type" id="type" class="form-select" onchange="this.form.submit()">
+                <option value="">Все</option>
+                {% for type in kefir_types %}
+                    <option value="{{ type.id }}" {% if current_type == type.id %}selected{% endif %}>{{ type.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="flavor">Доп. вкус:</label>
+            <select name="flavor" id="flavor" class="form-select" onchange="this.form.submit()">
+                <option value="">Все</option>
+                {% for flavor in flavors %}
+                    <option value="{{ flavor }}" {% if flavor == current_flavor %}selected{% endif %}>{{ flavor }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+{% if user.userprofile.role == 'merchandiser' or user.userprofile.role == 'admin' %}
+    <div class="text-end mb-3">
+        <a href="{% url 'add_kefir' %}" class="btn btn-success">Добавить товар</a>
+        <button id="toggleDeleteMode" class="btn btn-warning">Выбрать товары для удаления</button>
+        <form id="deleteForm" method="post" action="{% url 'delete_selected_kefirs' %}" style="display: none;">
+            {% csrf_token %}
+            <input type="hidden" name="kefir_ids" id="kefirIdsInput">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Вы уверены, что хотите удалить выбранные товары?')">Удалить выбранное</button>
+        </form>
+    </div>
+{% endif %}
+
+<div class="row row-cols-1 row-cols-md-3 g-4" id="kefirContainer">
+    {% for kefir in kefirs %}
+        <div class="col">
+            <div class="card h-100 mx-auto" style="width: 18rem;">
+                {% if user.userprofile.role == 'merchandiser' and kefir.created_by == request.user or user.userprofile.role == 'admin' %}
+                    <input type="checkbox" class="delete-checkbox" value="{{ kefir.id }}" form="deleteForm" style="display: none;">
+                {% endif %}
+                {% if kefir.image %}
+                    <img src="{{ kefir.image.url }}" class="card-img-top" alt="{{ kefir.brand }}">
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ kefir.brand }}</h5>
+                    <p class="card-text">
+                        {{ kefir.kefir_type.name }}, {{ kefir.volume }} мл<br>
+                        Жирность: {{ kefir.fat_content }}%<br>
+                        Артикул: {{ kefir.article }}
+                    </p>
+                    <a href="{% url 'kefir_detail' kefir.pk %}" class="btn btn-primary mt-auto">Подробнее</a>
+                </div>
+                {% if user.userprofile.role == 'admin' or user.userprofile.role == 'sales_manager'%}
+                <div class="card-footer bg-transparent">
+                    <form method="post" action="{% url 'add_to_cart' kefir.pk %}">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="number" name="quantity" value="1" min="1" class="form-control">
+                            <button type="submit" class="btn btn-success">В корзину</button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-center">Кефиры не найдены.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggleDeleteMode');
+    const deleteForm = document.getElementById('deleteForm');
+    const checkboxes = document.querySelectorAll('.delete-checkbox');
+    const container = document.getElementById('kefirContainer');
+    
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            container.classList.toggle('delete-mode');
+            checkboxes.forEach(checkbox => {
+                checkbox.style.display = checkbox.style.display === 'none' ? 'block' : 'none';
+            });
+            deleteForm.style.display = deleteForm.style.display === 'none' ? 'inline-block' : 'none';
+            toggleBtn.textContent = toggleBtn.textContent === 'Выбрать товары для удаления' 
+                ? 'Отменить выбор' 
+                : 'Выбрать товары для удаления';
+        });
+        
+        deleteForm.addEventListener('submit', function(e) {
+            const checkedBoxes = document.querySelectorAll('.delete-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                e.preventDefault();
+                alert('Выберите хотя бы один товар для удаления');
+                return;
+            }
+            
+            const kefirIds = Array.from(checkedBoxes).map(cb => cb.value).filter(v => v);
+            document.getElementById('kefirIdsInput').value = kefirIds.join(',');
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'catalog/base.html' %}
+
+{% block title %}Отправка партии товара{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="alert alert-success">
+        <h2 class="text-center">Партия товара на отправку сформирована!</h2>
+        <p class="text-center">Номер партии: #{{ cart.id }}</p>
+        <p class="text-center">Общая сумма: {{ cart.total_price }} руб.</p>
+    </div>
+    <div class="text-center mt-4">
+        <a href="{% url 'home' %}" class="btn btn-primary">Вернуться в каталог</a>
+    </div>
+</div>
+{% endblock %}

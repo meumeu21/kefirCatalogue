@@ -1,0 +1,33 @@
+{% extends 'catalog/base.html' %}
+
+{% block title %}Результаты поиска{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Результаты поиска: "{{ query }}"</h2>
+    
+    {% if results %}
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for kefir in results %}
+                <div class="col">
+                    <div class="card h-100">
+                        {% if kefir.image %}
+                            <img src="{{ kefir.image.url }}" class="card-img-top" alt="{{ kefir.brand }}">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ kefir.brand }}</h5>
+                            <p class="card-text">
+                                {{ kefir.kefir_type.name }}, {{ kefir.volume }} мл<br>
+                                Жирность: {{ kefir.fat_content }}%
+                            </p>
+                            <a href="{% url 'kefir_detail' kefir.pk %}" class="btn btn-primary">Подробнее</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">По вашему запросу ничего не найдено.</div>
+    {% endif %}
+</div>
+{% endblock %}
