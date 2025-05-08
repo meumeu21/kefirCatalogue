@@ -6,7 +6,7 @@ urlpatterns = [
     path('', views.kefir_list, name='home'),
     path('about/', views.about, name='about'),
     path('kefir/<int:pk>/', views.kefir_detail, name='kefir_detail'),
-    
+
     path('kefir/add/', views.add_kefir, name='add_kefir'),
     path('kefir/edit/<int:pk>/', views.edit_kefir, name='edit_kefir'),
     path('kefir/delete-selected/', views.delete_selected_kefirs, name='delete_selected_kefirs'),

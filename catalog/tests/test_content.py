@@ -43,7 +43,7 @@ class ContentTests(TestCase):
             price=80,
             extra_flavor="Шоколад"
         )
-    
+
     # Создание товара
     # Создание правильных товаров
     def test_kefir_creation(self):
@@ -157,8 +157,8 @@ class ContentTests(TestCase):
         )
         kefir.full_clean()
 
-
     # Отрицательные значения
+
     # Отрицательный объем
     def test_negative_volume(self):
         kefir = Kefir(
@@ -219,25 +219,24 @@ class ContentTests(TestCase):
         with self.assertRaises(ValidationError):
             kefir.full_clean()
 
-
     # Сортировки
     def test_sort_by_brand(self):
         response = self.client.get(reverse('home') + '?sort=brand')
         kefirs = list(response.context['kefirs'])
-        
+
         expected_order = Kefir.objects.order_by('brand__name')
         expected_brands = [k.brand.name for k in expected_order]
-        
+
         actual_brands = [k.brand.name for k in kefirs]
         self.assertEqual(actual_brands, expected_brands)
 
     def test_sort_by_fat_descending(self):
         response = self.client.get(reverse('home') + '?sort=fat_content&direction=desc')
         kefirs = list(response.context['kefirs'])
-        
+
         expected_order = Kefir.objects.order_by('-fat_content')
         expected_fats = [k.fat_content for k in expected_order]
-        
+
         actual_fats = [k.fat_content for k in kefirs]
         self.assertEqual(actual_fats, expected_fats)
 
@@ -253,9 +252,9 @@ class ContentTests(TestCase):
     def test_sort_by_extra_flavor_ascending(self):
         response = self.client.get(reverse('home') + '?sort=extra_flavor&direction=asc')
         kefirs = list(response.context['kefirs'])
-        
+
         expected_order = Kefir.objects.order_by('extra_flavor')
         expected_flavors = [k.extra_flavor for k in expected_order]
-        
+
         actual_flavors = [k.extra_flavor for k in kefirs]
         self.assertEqual(actual_flavors, expected_flavors)

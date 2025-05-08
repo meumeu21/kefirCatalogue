@@ -1,2 +1,6 @@
-Django==5.1.7
-python-dotenv==1.0.1
+Django
+python-dotenv
+gunicorn
+psycopg2-binary
+flake8
+Pillow

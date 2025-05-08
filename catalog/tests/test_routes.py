@@ -3,6 +3,7 @@ from django.urls import reverse
 from catalog.models import Kefir, KefirType, KefirBrand
 from http import HTTPStatus
 
+
 class RouteTests(TestCase):
     def setUp(self):
         self.type = KefirType.objects.create(name="Классический")
